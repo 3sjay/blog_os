@@ -1,7 +1,6 @@
 
 use volatile::Volatile;
 use core::fmt;
-use core::fmt::Write;
 use lazy_static::lazy_static;
 use spin::Mutex;
 
@@ -161,15 +160,12 @@ pub fn _print(args: fmt::Arguments) {
 }
 
 
-
-pub fn print_something() {
-    let mut writer = Writer {
-        column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    };
-
-    writer.write_byte(b'H');
-    writer.write_string("ello ");
-    write!(writer, "The numbers are {} and {}", 42, 1.0/3.0).unwrap();
+#[test_case]
+fn test_println_output() {
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
 }
